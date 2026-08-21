@@ -1,0 +1,977 @@
+<!DOCTYPE html>
+<html lang="it">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Hesperia APS — Questionario Sovraindebitamento</title>
+<style>
+* { box-sizing: border-box; margin: 0; padding: 0; }
+body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-serif; background: #f4f4f0; color: #1a1a1a; font-size: 15px; line-height: 1.6; }
+.app { max-width: 800px; margin: 0 auto; padding: 20px 16px; }
+.header { background: #fff; border-radius: 12px; padding: 20px; margin-bottom: 16px; border: 1px solid #ddd; display: flex; align-items: center; gap: 14px; }
+.logo { width: 44px; height: 44px; background: #1a8c64; border-radius: 50%; display: flex; align-items: center; justify-content: center; color: #fff; font-weight: 700; font-size: 18px; flex-shrink: 0; }
+.header h1 { font-size: 17px; font-weight: 600; }
+.header p { font-size: 12px; color: #666; margin-top: 2px; }
+.progress-box { background: #fff; border-radius: 12px; padding: 16px 20px; margin-bottom: 16px; border: 1px solid #ddd; }
+.progress-top { display: flex; justify-content: space-between; font-size: 13px; margin-bottom: 8px; }
+.progress-top strong { font-weight: 600; }
+.progress-top span { color: #888; }
+.pbar { height: 6px; background: #e8e8e4; border-radius: 3px; margin-bottom: 12px; }
+.pfill { height: 100%; background: #1a8c64; border-radius: 3px; transition: width 0.4s; }
+.steps { display: flex; gap: 4px; flex-wrap: wrap; }
+.step-pill { font-size: 11px; padding: 3px 10px; border-radius: 10px; border: 1px solid #ddd; color: #999; background: #fff; cursor: default; }
+.step-pill.done { background: #e6f4ee; color: #1a6644; border-color: #99d4b8; cursor: pointer; }
+.step-pill.active { background: #1a8c64; color: #fff; border-color: #1a8c64; }
+.card { background: #fff; border-radius: 12px; padding: 24px; border: 1px solid #ddd; margin-bottom: 16px; }
+.stitle { font-size: 11px; font-weight: 700; color: #888; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 16px; padding-bottom: 8px; border-bottom: 1px solid #eee; }
+.row { display: grid; grid-template-columns: 1fr 1fr; gap: 14px; margin-bottom: 14px; }
+.row.full { grid-template-columns: 1fr; }
+.row.three { grid-template-columns: 1fr 1fr 1fr; }
+.field label { display: block; font-size: 12px; font-weight: 600; color: #555; margin-bottom: 4px; }
+.field input, .field select, .field textarea { width: 100%; padding: 9px 11px; border: 1px solid #ccc; border-radius: 8px; font-size: 14px; font-family: inherit; color: #1a1a1a; background: #fff; transition: border-color 0.2s; }
+.field input:focus, .field select:focus, .field textarea:focus { outline: none; border-color: #1a8c64; box-shadow: 0 0 0 3px rgba(26,140,100,0.1); }
+.field textarea { resize: vertical; min-height: 120px; }
+.radios { display: flex; gap: 14px; flex-wrap: wrap; margin-top: 4px; }
+.radios label { display: flex; align-items: center; gap: 6px; font-size: 13px; font-weight: 400; color: #333; cursor: pointer; }
+.radios input[type=radio] { accent-color: #1a8c64; width: 16px; height: 16px; }
+.checks { display: grid; grid-template-columns: 1fr 1fr; gap: 6px; }
+.checks label { display: flex; align-items: center; gap: 8px; font-size: 13px; font-weight: 400; cursor: pointer; padding: 4px 0; }
+.checks input[type=checkbox] { accent-color: #1a8c64; width: 16px; height: 16px; flex-shrink: 0; }
+.debt-box { background: #f9f9f7; border: 1px solid #e0e0da; border-radius: 10px; padding: 16px; margin-bottom: 12px; }
+.debt-head { display: flex; justify-content: space-between; align-items: center; margin-bottom: 12px; }
+.debt-head h3 { font-size: 13px; font-weight: 600; color: #444; }
+.btn-remove { background: none; border: none; color: #c03030; font-size: 13px; cursor: pointer; padding: 2px 8px; border-radius: 6px; }
+.btn-remove:hover { background: #fce8e8; }
+.btn-add { width: 100%; padding: 10px; border: 2px dashed #ccc; background: transparent; border-radius: 8px; font-size: 13px; color: #777; cursor: pointer; margin-bottom: 16px; transition: all 0.2s; }
+.btn-add:hover { border-color: #1a8c64; color: #1a8c64; }
+.navrow { display: flex; justify-content: space-between; align-items: center; gap: 10px; flex-wrap: wrap; padding-top: 16px; border-top: 1px solid #eee; margin-top: 8px; }
+.btn { padding: 10px 22px; border-radius: 8px; font-size: 14px; font-weight: 600; cursor: pointer; font-family: inherit; transition: all 0.2s; }
+.btn-primary { background: #1a8c64; color: #fff; border: none; }
+.btn-primary:hover { background: #147a55; }
+.btn-secondary { background: #fff; border: 1px solid #ccc; color: #333; }
+.btn-secondary:hover { background: #f5f5f3; }
+.badge { display: inline-block; padding: 4px 12px; border-radius: 10px; font-size: 11px; font-weight: 700; margin-right: 6px; margin-bottom: 10px; }
+.bg-green { background: #e6f4ee; color: #1a6644; }
+.bg-blue { background: #e6f0fb; color: #1a4488; }
+.bg-amber { background: #fef0da; color: #7a4a08; }
+.bg-red { background: #fce8e8; color: #8c2020; }
+.result-title { font-size: 20px; font-weight: 700; margin-bottom: 8px; }
+.result-text { font-size: 14px; color: #444; line-height: 1.8; margin-bottom: 16px; }
+.stat-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 10px; margin-bottom: 16px; }
+.stat { background: #f4f4f0; border-radius: 8px; padding: 12px 14px; border: 1px solid #e8e8e4; }
+.stat-label { font-size: 11px; color: #777; font-weight: 600; margin-bottom: 2px; }
+.stat-val { font-size: 20px; font-weight: 700; }
+.green { color: #1a8c64; } .red { color: #c03030; }
+.alert { padding: 12px 14px; border-radius: 8px; font-size: 13px; margin-bottom: 14px; line-height: 1.6; }
+.alert-warn { background: #fef3e2; color: #7a4a08; border: 1px solid #fad98a; }
+.alert-red { background: #fce8e8; color: #8c2020; border: 1px solid #f5b5b5; }
+.alert-green { background: #e6f4ee; color: #1a6644; border: 1px solid #99d4b8; }
+.ricorso { background: #f9f9f7; border: 1px solid #ddd; border-radius: 8px; padding: 16px; font-size: 12.5px; line-height: 1.9; white-space: pre-wrap; max-height: 450px; overflow-y: auto; font-family: 'Courier New', monospace; color: #222; margin-bottom: 14px; }
+.action-row { display: flex; gap: 10px; flex-wrap: wrap; }
+.sig-wrap { border: 1px solid #ccc; border-radius: 10px; background: #fff; touch-action: none; margin-bottom: 8px; }
+.sig-wrap canvas { display: block; width: 100%; height: 180px; cursor: crosshair; border-radius: 10px; }
+.sig-hint { font-size: 11px; color: #888; margin-bottom: 14px; }
+.check-line { display: flex; align-items: flex-start; gap: 8px; font-size: 13px; margin: 14px 0; line-height: 1.5; }
+.check-line input[type=checkbox] { accent-color: #1a8c64; width: 17px; height: 17px; margin-top: 2px; flex-shrink: 0; }
+.btn:disabled { opacity: 0.45; cursor: not-allowed; }
+.btn-big { padding: 13px 22px; font-size: 15px; }
+.dl-status { font-size: 12px; margin-top: 8px; min-height: 16px; }
+@media (max-width: 580px) {
+  .row { grid-template-columns: 1fr; }
+  .row.three { grid-template-columns: 1fr; }
+  .stat-grid { grid-template-columns: 1fr; }
+  .checks { grid-template-columns: 1fr; }
+  .navrow { flex-direction: column-reverse; align-items: stretch; }
+  .navrow > div { flex-direction: column-reverse; display: flex; gap: 10px; }
+  .navrow .btn { width: 100%; text-align: center; }
+}
+</style>
+</head>
+<body>
+<div class="app">
+  <div class="header">
+    <div class="logo">H</div>
+    <div>
+      <h1>Associazione Nazionale Hesperia APS</h1>
+      <p>Questionario sovraindebitamento — Legge n.3/2012</p>
+    </div>
+  </div>
+  <div class="progress-box">
+    <div class="progress-top">
+      <strong id="step-name">Anagrafica</strong>
+      <span id="step-count">Passo 1 di 9</span>
+    </div>
+    <div class="pbar"><div class="pfill" id="pfill" style="width:11%"></div></div>
+    <div class="steps" id="steps-nav"></div>
+  </div>
+  <div class="card" id="main-card"></div>
+  <div class="navrow">
+    <button class="btn btn-secondary" id="btn-prev">← Precedente</button>
+    <div style="display:flex; gap:10px;">
+      <button class="btn btn-secondary" id="btn-download-global">⬇ Scarica bozza (PDF)</button>
+      <button class="btn btn-primary" id="btn-next">Avanti →</button>
+    </div>
+  </div>
+</div>
+
+<script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
+<script>
+var step = 0;
+var STEPS = ['Consulente','Anagrafica','Lavoro','Famiglia','Patrimonio','Spese','Debiti','Creditori','Storia','Analisi','Firma'];
+
+var D = {
+  consulente: { nome:'', cognome:'', ruolo:'consulente', struttura:'', codice:'', email:'', tel:'', dataCompilazione:new Date().toISOString().slice(0,10) },
+  cognome:'', nome:'', luogoNascita:'', dataNascita:'', residenza:'', comune:'', cap:'', cf:'', email:'', pec:'', tel1:'', tel2:'', tel3:'',
+  tipoLavoro:'dipendente', qualifica:'impiegato', datoreLavoro:'', dataAssunzione:'', professione:'', settore:'', cciaaN:'', cciaaAnno:'', annoPensione:'', annoCig:'', dalDisoc:'', redditoNetto:'', redditoLordo:'',
+  statoCivile:'celibe', comunioneBeni:'no', coniugeNome:'', coniugeReddito:'', altriReddito:'', totMensile:'', totAnnuo:'',
+  familiari:[],
+  tipoAbitazione:'affitto', annoAcquisto:'', valoreImmobile:'', indirizzoImm:'', affittoDal:'', affittoAl:'', canone:'', sfratto:'no', tipoResidenza:'appartamento', mq:'', altriImmobili:'', autoveicoli:'',
+  vitto:'', carburante:'', abbonamenti:'', luceGas:'', affittoSpesa:'', condominio:'', sigarette:'', scuola:'', garage:'', mutuo:'', altreRate:'', tempo:'', altroMens:'',
+  assicurazioni:'', bolliVeicoli:'', spazzatura:'', vacanze:'', scuoleAnn:'', mediche:'',
+  banche:[], finanziarie:[], altriDebiti:[],
+  protesti:'no', tipoProtesti:'cambiario', quantiProtesti:'uno', azioni:{},
+  motiviPrincipali:{}, storiaDebito:'',
+  firma: { luogo:'', data:new Date().toISOString().slice(0,10), accetta:false, imgData:null }
+};
+
+function uid() { return Math.random().toString(36).slice(2); }
+
+function fmt(n) {
+  var v = parseFloat(n) || 0;
+  return v.toLocaleString('it-IT', {minimumFractionDigits:2, maximumFractionDigits:2});
+}
+
+function buildStepsNav() {
+  var html = '';
+  for (var i = 0; i < STEPS.length; i++) {
+    var cls = i === step ? 'active' : (i < step ? 'done' : '');
+    html += '<span class="step-pill ' + cls + '" data-i="' + i + '">' + STEPS[i] + '</span>';
+  }
+  document.getElementById('steps-nav').innerHTML = html;
+  document.querySelectorAll('.step-pill.done').forEach(function(el) {
+    el.addEventListener('click', function() {
+      step = parseInt(this.getAttribute('data-i'));
+      render();
+    });
+  });
+}
+
+function updateTop() {
+  var analisiIdx = STEPS.indexOf('Analisi');
+  var lastIdx = STEPS.length - 1;
+  document.getElementById('step-name').textContent = STEPS[step];
+  document.getElementById('step-count').textContent = 'Passo ' + (step+1) + ' di ' + STEPS.length;
+  document.getElementById('pfill').style.width = Math.round((step+1)/STEPS.length*100) + '%';
+  document.getElementById('btn-prev').style.visibility = step > 0 ? 'visible' : 'hidden';
+  var label = 'Avanti →';
+  if (step === analisiIdx - 1) label = 'Genera Analisi →';
+  else if (step === analisiIdx) label = 'Procedi alla firma →';
+  else if (step === lastIdx) label = '';
+  document.getElementById('btn-next').textContent = label;
+  document.getElementById('btn-next').style.display = step === lastIdx ? 'none' : 'inline-block';
+  document.getElementById('btn-download-global').style.display = step === lastIdx ? 'none' : 'inline-block';
+}
+
+function render() {
+  buildStepsNav();
+  updateTop();
+  var card = document.getElementById('main-card');
+  card.innerHTML = '';
+  var fns = [showConsulente, showAnagrafica, showLavoro, showFamiglia, showPatrimonio, showSpese, showDebiti, showCreditori, showStoria, showAnalisi, showFirma];
+  fns[step]();
+}
+
+function row(fields) {
+  var cls = fields.length === 1 ? 'full' : (fields.length === 3 ? 'three' : '');
+  return '<div class="row ' + cls + '">' + fields.join('') + '</div>';
+}
+
+function fi(label, id, type, val, ph) {
+  type = type || 'text'; val = val || ''; ph = ph || '';
+  return '<div class="field"><label>' + label + '</label><input type="' + type + '" id="' + id + '" value="' + val.toString().replace(/"/g,'&quot;') + '" placeholder="' + ph + '"></div>';
+}
+
+function fsel(label, id, opts, val) {
+  var options = opts.map(function(o) {
+    return '<option value="' + o[0] + '"' + (o[0] == val ? ' selected' : '') + '>' + o[1] + '</option>';
+  }).join('');
+  return '<div class="field"><label>' + label + '</label><select id="' + id + '">' + options + '</select></div>';
+}
+
+function bind(id, key) {
+  var el = document.getElementById(id);
+  if (!el) return;
+  el.addEventListener('change', function() { D[key] = this.value; });
+  el.addEventListener('input', function() { D[key] = this.value; });
+}
+
+function showConsulente() {
+  var c = document.getElementById('main-card');
+  var ruoli = [['consulente','Consulente'],['gestore','Gestore della Crisi'],['collaboratore','Collaboratore/Segreteria'],['altro','Altro']];
+  var radios = ruoli.map(function(r) {
+    return '<label><input type="radio" name="ruoloCons" value="' + r[0] + '"' + (D.consulente.ruolo===r[0]?' checked':'') + '> ' + r[1] + '</label>';
+  }).join('');
+
+  c.innerHTML = '<p class="stitle">Identificazione del consulente incaricato</p>' +
+    '<div class="alert alert-green">Questi dati identificano chi ha raccolto e compilato il questionario insieme al cliente. Compilarli prima di procedere.</div>' +
+    row([fi('Nome consulente *','fc-nome','text',D.consulente.nome,'Anna'), fi('Cognome consulente *','fc-cognome','text',D.consulente.cognome,'Bianchi')]) +
+    '<div class="field" style="margin-bottom:14px"><label>Ruolo</label><div class="radios">' + radios + '</div></div>' +
+    row([fi('Struttura / Sede / Studio','fc-struttura','text',D.consulente.struttura,'Hesperia APS - Sede di Bologna'), fi('Codice identificativo / Matricola','fc-codice','text',D.consulente.codice,'')]) +
+    row([fi('E-mail','fc-email','email',D.consulente.email,'consulente@hesperia.it'), fi('Telefono','fc-tel','tel',D.consulente.tel,'')]) +
+    row([fi('Data compilazione','fc-data','date',D.consulente.dataCompilazione,'')]);
+
+  document.querySelectorAll('input[name="ruoloCons"]').forEach(function(r) {
+    r.addEventListener('change', function() { D.consulente.ruolo = this.value; });
+  });
+  ['nome','cognome','struttura','codice','email','tel','dataCompilazione'].forEach(function(k) {
+    var idMap = { nome:'fc-nome', cognome:'fc-cognome', struttura:'fc-struttura', codice:'fc-codice', email:'fc-email', tel:'fc-tel', dataCompilazione:'fc-data' };
+    var el = document.getElementById(idMap[k]);
+    if (!el) return;
+    el.addEventListener('input', function() { D.consulente[k] = this.value; });
+    el.addEventListener('change', function() { D.consulente[k] = this.value; });
+  });
+}
+
+function labelRuoloConsulente(v) { return {consulente:'Consulente',gestore:'Gestore della Crisi',collaboratore:'Collaboratore/Segreteria',altro:'Altro'}[v] || v; }
+
+function showAnagrafica() {
+  var c = document.getElementById('main-card');
+  c.innerHTML = '<p class="stitle">Dati anagrafici del richiedente</p>' +
+    row([fi('Cognome *','f-cognome','text',D.cognome,'Rossi'), fi('Nome *','f-nome','text',D.nome,'Mario')]) +
+    row([fi('Luogo di nascita','f-luogo','text',D.luogoNascita,'Milano'), fi('Data di nascita','f-data','date',D.dataNascita)]) +
+    row([fi('Residenza — via e numero','f-res','text',D.residenza,'Via Roma 1')]) +
+    row([fi('Comune','f-comune','text',D.comune,'Milano'), fi('CAP','f-cap','text',D.cap,'20100'), fi('Codice Fiscale','f-cf','text',D.cf,'RSSMRA...')]) +
+    row([fi('E-mail','f-email','email',D.email,'mario@email.it'), fi('PEC','f-pec','email',D.pec,'mario@pec.it')]) +
+    row([fi('Tel. abitazione','f-tel1','tel',D.tel1,'02...'), fi('Tel. cellulare','f-tel2','tel',D.tel2,'3...'), fi('Tel. studio','f-tel3','tel',D.tel3,'')]);
+  bind('f-cognome','cognome'); bind('f-nome','nome'); bind('f-luogo','luogoNascita');
+  bind('f-data','dataNascita'); bind('f-res','residenza'); bind('f-comune','comune');
+  bind('f-cap','cap'); bind('f-cf','cf'); bind('f-email','email');
+  bind('f-pec','pec'); bind('f-tel1','tel1'); bind('f-tel2','tel2'); bind('f-tel3','tel3');
+}
+
+function showLavoro() {
+  var c = document.getElementById('main-card');
+  var tipi = [['dipendente','Dipendente'],['autonomo','Autonomo / P.IVA'],['pensione','Pensionato/a'],['cig','Cassa integrazione'],['disoccupato','Disoccupato/a']];
+  var radios = tipi.map(function(t) {
+    return '<label><input type="radio" name="tipoL" value="' + t[0] + '"' + (D.tipoLavoro===t[0]?' checked':'') + '> ' + t[1] + '</label>';
+  }).join('');
+
+  var extra = '';
+  if (D.tipoLavoro === 'dipendente') {
+    extra = row([fsel('Qualifica','f-qual',[['impiegato','Impiegato'],['dirigente','Dirigente'],['operaio','Operaio']],D.qualifica), fi('Datore di lavoro','f-datore','text',D.datoreLavoro,'Azienda Srl')]) +
+            row([fi('Data assunzione','f-assim','date',D.dataAssunzione), fi('','f-dummy','text','','')]);
+  } else if (D.tipoLavoro === 'autonomo') {
+    extra = row([fi('Professione','f-prof','text',D.professione,'es. Commerciante'), fi('Settore','f-sett','text',D.settore,'es. Abbigliamento')]) +
+            row([fi('N. CCIAA','f-ccia','text',D.cciaaN,''), fi('Anno iscrizione','f-cciaa','number',D.cciaaAnno,'')]);
+  } else if (D.tipoLavoro === 'pensione') {
+    extra = row([fi("In pensione dall'anno",'f-pensione','number',D.annoPensione,''), fi('','f-d2','text','','')]);
+  } else if (D.tipoLavoro === 'cig') {
+    extra = row([fi("CIG dall'anno",'f-cig','number',D.annoCig,''), fi('','f-d3','text','','')]);
+  } else if (D.tipoLavoro === 'disoccupato') {
+    extra = row([fi('Disoccupato/a dal','f-disoc','date',D.dalDisoc,'')]);
+  }
+
+  c.innerHTML = '<p class="stitle">Attività lavorativa e reddito</p>' +
+    '<div class="field" style="margin-bottom:14px"><label>Situazione lavorativa</label><div class="radios">' + radios + '</div></div>' +
+    extra +
+    row([fi('Reddito mensile netto (€)','f-rednetto','number',D.redditoNetto,'1500'), fi('Reddito annuo lordo (€)','f-redlordo','number',D.redditoLordo,'24000')]);
+
+  document.querySelectorAll('input[name="tipoL"]').forEach(function(r) {
+    r.addEventListener('change', function() { D.tipoLavoro = this.value; showLavoro(); });
+  });
+  bind('f-qual','qualifica'); bind('f-datore','datoreLavoro'); bind('f-assim','dataAssunzione');
+  bind('f-prof','professione'); bind('f-sett','settore'); bind('f-ccia','cciaaN'); bind('f-cciaa','cciaaAnno');
+  bind('f-pensione','annoPensione'); bind('f-cig','annoCig'); bind('f-disoc','dalDisoc');
+  bind('f-rednetto','redditoNetto'); bind('f-redlordo','redditoLordo');
+}
+
+function showFamiglia() {
+  var c = document.getElementById('main-card');
+  var statiCivili = [['celibe','Celibe/Nubile'],['coniugato','Coniugato/a'],['convivente','Convivente'],['separato','Separato/a'],['divorziato','Divorziato/a'],['vedovo','Vedovo/a']];
+  var coniuge = (D.statoCivile==='coniugato'||D.statoCivile==='convivente') ?
+    row([fi('Nome coniuge/convivente','f-coniuge','text',D.coniugeNome,''), fi('Reddito mensile netto coniuge (€)','f-conred','number',D.coniugeReddito,'')]) : '';
+
+  c.innerHTML = '<p class="stitle">Nucleo familiare e redditi</p>' +
+    row([fsel('Stato civile','f-stato',statiCivili,D.statoCivile), fsel('Comunione dei beni','f-com',[['no','No'],['si','Sì']],D.comunioneBeni)]) +
+    coniuge +
+    row([fi('Reddito altri familiari conviventi (€/mese totale)','f-altri','number',D.altriReddito,''), fi('','f-d','text','','')]) +
+    '<p class="stitle" style="margin-top:18px">Altri componenti del nucleo familiare</p>' +
+    '<p style="font-size:12px;color:#666;margin-bottom:10px">Aggiungere ogni familiare convivente (figli, genitori, altri parenti) con la relativa capacità reddituale.</p>' +
+    familiariHTML() +
+    '<button class="btn-add" id="add-familiare">+ Aggiungi familiare</button>' +
+    '<div class="alert alert-green" style="margin-bottom:14px">I totali seguenti vengono usati per il calcolo automatico della procedura.</div>' +
+    row([fi('Totale mensile netto del nucleo (€)','f-totm','number',D.totMensile,''), fi('Totale annuo lordo del nucleo (€)','f-tota','number',D.totAnnuo,'')]);
+
+  document.getElementById('f-stato').addEventListener('change', function() { D.statoCivile = this.value; showFamiglia(); });
+  bind('f-com','comunioneBeni'); bind('f-coniuge','coniugeNome'); bind('f-conred','coniugeReddito');
+  bind('f-altri','altriReddito'); bind('f-totm','totMensile'); bind('f-tota','totAnnuo');
+
+  bindFamiliariInputs();
+  document.getElementById('add-familiare').addEventListener('click', function() { D.familiari.push({}); showFamiglia(); });
+}
+
+function familiariHTML() {
+  return D.familiari.map(function(fam, i) {
+    return '<div class="debt-box" id="fambox-' + i + '">' +
+      '<div class="debt-head"><h3>Familiare #' + (i+1) + '</h3>' +
+      '<button class="btn-remove" data-fam-i="' + i + '">✕ Rimuovi</button></div>' +
+      '<div class="row"><div class="field"><label>Nome e cognome</label><input type="text" data-fam-i="' + i + '" data-fam-k="nome" value="' + (fam.nome||'').toString().replace(/"/g,'&quot;') + '" placeholder="es. Giulia Rossi"></div>' +
+      '<div class="field"><label>Grado di parentela</label><input type="text" data-fam-i="' + i + '" data-fam-k="parentela" value="' + (fam.parentela||'').toString().replace(/"/g,'&quot;') + '" placeholder="es. Figlio/a, Genitore..."></div></div>' +
+      '<div class="row three"><div class="field"><label>Data di nascita</label><input type="date" data-fam-i="' + i + '" data-fam-k="dataNascita" value="' + (fam.dataNascita||'') + '"></div>' +
+      '<div class="field"><label>Condizione</label><input type="text" data-fam-i="' + i + '" data-fam-k="condizione" value="' + (fam.condizione||'').toString().replace(/"/g,'&quot;') + '" placeholder="es. Studente, Occupato..."></div>' +
+      '<div class="field"><label>Reddito mensile netto (€)</label><input type="number" data-fam-i="' + i + '" data-fam-k="reddito" value="' + (fam.reddito||'') + '"></div></div>' +
+      '</div>';
+  }).join('');
+}
+
+function bindFamiliariInputs() {
+  document.querySelectorAll('[data-fam-i][data-fam-k]').forEach(function(el) {
+    var handler = function() {
+      var i = parseInt(this.getAttribute('data-fam-i'));
+      var k = this.getAttribute('data-fam-k');
+      D.familiari[i][k] = this.value;
+    };
+    el.addEventListener('change', handler);
+    el.addEventListener('input', handler);
+  });
+  document.querySelectorAll('[data-fam-i].btn-remove, .btn-remove[data-fam-i]').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var i = parseInt(this.getAttribute('data-fam-i'));
+      D.familiari.splice(i,1);
+      showFamiglia();
+    });
+  });
+}
+
+function showPatrimonio() {
+  var c = document.getElementById('main-card');
+  var isPropr = D.tipoAbitazione === 'proprieta';
+  var radiosAb = '<label><input type="radio" name="tipAb" value="affitto"' + (!isPropr?' checked':'') + '> Affitto</label>' +
+                 '<label><input type="radio" name="tipAb" value="proprieta"' + (isPropr?' checked':'') + '> Proprietà</label>';
+  var abExtra = isPropr ?
+    row([fi("Anno acquisto",'f-aq','number',D.annoAcquisto,''), fi("Valore stimato (€)",'f-val','number',D.valoreImmobile,'')]) +
+    row([fi('Indirizzo immobile','f-indimm','text',D.indirizzoImm,'Via Roma 1, Milano')]) :
+    row([fi('Contratto dal','f-adal','date',D.affittoDal,''), fi('al','f-aal','date',D.affittoAl,''), fi('Canone mensile (€)','f-can','number',D.canone,'')]) +
+    '<div class="field" style="margin-bottom:14px"><label>In fase di sfratto?</label><div class="radios">' +
+    '<label><input type="radio" name="sfratto" value="no"' + (D.sfratto==='no'?' checked':'') + '> No</label>' +
+    '<label><input type="radio" name="sfratto" value="si"' + (D.sfratto==='si'?' checked':'') + '> Sì</label>' +
+    '</div></div>';
+
+  c.innerHTML = '<p class="stitle">Patrimonio e abitazione</p>' +
+    '<div class="field" style="margin-bottom:14px"><label>Il nucleo vive in</label><div class="radios">' + radiosAb + '</div></div>' +
+    abExtra +
+    row([fsel('Tipo residenza','f-tipores',[['appartamento','Appartamento'],['indipendente','Casa indipendente']],D.tipoResidenza), fi('Superficie (mq)','f-mq','number',D.mq,'')]) +
+    row([fi('Autoveicoli di proprietà','f-auto','text',D.autoveicoli,'es. Fiat Punto 2015')]) +
+    row([fi('Altri immobili o terreni','f-altrimm','text',D.altriImmobili,'es. Box auto, terreno...')]);
+
+  document.querySelectorAll('input[name="tipAb"]').forEach(function(r) {
+    r.addEventListener('change', function() { D.tipoAbitazione = this.value; showPatrimonio(); });
+  });
+  document.querySelectorAll('input[name="sfratto"]').forEach(function(r) {
+    r.addEventListener('change', function() { D.sfratto = this.value; });
+  });
+  bind('f-aq','annoAcquisto'); bind('f-val','valoreImmobile'); bind('f-indimm','indirizzoImm');
+  bind('f-adal','affittoDal'); bind('f-aal','affittoAl'); bind('f-can','canone');
+  bind('f-tipores','tipoResidenza'); bind('f-mq','mq'); bind('f-auto','autoveicoli'); bind('f-altrimm','altriImmobili');
+}
+
+function showSpese() {
+  var c = document.getElementById('main-card');
+  var mens = [['vitto','Vitto e alimentari','f-vit'],['carburante','Carburante','f-carb'],['abbonamenti','Abbonamenti trasporti','f-abb'],['luceGas','Luce / Gas / Telefono','f-lg'],['affittoSpesa','Affitto','f-aff'],['condominio','Condominio','f-cond'],['sigarette','Sigarette','f-sig'],['scuola','Scuola e sport','f-scu'],['garage','Garage','f-gar'],['mutuo','Rata mutuo','f-mut'],['altreRate','Rate altri finanziamenti','f-altr'],['tempo','Tempo libero','f-tem'],['altroMens','Altro mensile','f-altm']];
+  var ann = [['assicurazioni','Assicurazioni varie','f-ass'],['bolliVeicoli','Bollo veicoli','f-bol'],['spazzatura','TARI (rifiuti)','f-spaz'],['vacanze','Vacanze','f-vac'],['scuoleAnn','Scuole/Università','f-sca'],['mediche','Spese mediche','f-med']];
+
+  var hm = '<p class="stitle">Spese mensili (€/mese)</p>';
+  mens.forEach(function(m) { hm += row([fi(m[1], m[2], 'number', D[m[0]], '0'), '<div class="field"></div>']); });
+  hm += '<p class="stitle" style="margin-top:8px">Spese annuali (€/anno)</p>';
+  ann.forEach(function(a) { hm += row([fi(a[1], a[2], 'number', D[a[0]], '0'), '<div class="field"></div>']); });
+  c.innerHTML = hm;
+  mens.forEach(function(m) { bind(m[2], m[0]); });
+  ann.forEach(function(a) { bind(a[2], a[0]); });
+}
+
+function debtHTML(arr, cat) {
+  return arr.map(function(item, i) {
+    return '<div class="debt-box" id="dbox-' + cat + '-' + i + '">' +
+      '<div class="debt-head"><h3>' + (cat==='banche'?'Banca':cat==='fin'?'Finanziaria':'Creditore') + ' #' + (i+1) + '</h3>' +
+      '<button class="btn-remove" data-cat="' + cat + '" data-i="' + i + '">✕ Rimuovi</button></div>' +
+      '<div class="row"><div class="field"><label>Nome istituto</label><input type="text" data-cat="' + cat + '" data-i="' + i + '" data-k="nome" value="' + (item.nome||'') + '" placeholder="es. UniCredit"></div>' +
+      '<div class="field"><label>Importo iniziale (€)</label><input type="number" data-cat="' + cat + '" data-i="' + i + '" data-k="iniziale" value="' + (item.iniziale||'') + '"></div></div>' +
+      '<div class="row three"><div class="field"><label>Rate totali</label><input type="number" data-cat="' + cat + '" data-i="' + i + '" data-k="rateTot" value="' + (item.rateTot||'') + '"></div>' +
+      '<div class="field"><label>Rate residue</label><input type="number" data-cat="' + cat + '" data-i="' + i + '" data-k="rateRes" value="' + (item.rateRes||'') + '"></div>' +
+      '<div class="field"><label>Rate arretrate</label><input type="number" data-cat="' + cat + '" data-i="' + i + '" data-k="rateArr" value="' + (item.rateArr||'') + '"></div></div>' +
+      '<div class="row"><div class="field"><label>Rata mensile (€)</label><input type="number" data-cat="' + cat + '" data-i="' + i + '" data-k="rataMens" value="' + (item.rataMens||'') + '"></div>' +
+      '<div class="field"><label>Residuo debito (€)</label><input type="number" data-cat="' + cat + '" data-i="' + i + '" data-k="residuo" value="' + (item.residuo||'') + '"></div></div>' +
+      (cat==='altri'?'<div class="row full"><div class="field"><label>Descrizione</label><input type="text" data-cat="' + cat + '" data-i="' + i + '" data-k="desc" value="' + (item.desc||'') + '" placeholder="es. cartella esattoriale, INPS..."></div></div>':'') +
+      '</div>';
+  }).join('');
+}
+
+function bindDebtInputs() {
+  document.querySelectorAll('[data-cat][data-i][data-k]').forEach(function(el) {
+    el.addEventListener('change', function() {
+      var cat = this.getAttribute('data-cat');
+      var i = parseInt(this.getAttribute('data-i'));
+      var k = this.getAttribute('data-k');
+      var arr = cat==='banche' ? D.banche : (cat==='fin' ? D.finanziarie : D.altriDebiti);
+      arr[i][k] = this.value;
+    });
+    el.addEventListener('input', function() {
+      var cat = this.getAttribute('data-cat');
+      var i = parseInt(this.getAttribute('data-i'));
+      var k = this.getAttribute('data-k');
+      var arr = cat==='banche' ? D.banche : (cat==='fin' ? D.finanziarie : D.altriDebiti);
+      arr[i][k] = this.value;
+    });
+  });
+  document.querySelectorAll('.btn-remove').forEach(function(btn) {
+    btn.addEventListener('click', function() {
+      var cat = this.getAttribute('data-cat');
+      var i = parseInt(this.getAttribute('data-i'));
+      if (cat==='banche') D.banche.splice(i,1);
+      else if (cat==='fin') D.finanziarie.splice(i,1);
+      else D.altriDebiti.splice(i,1);
+      showDebiti();
+    });
+  });
+}
+
+function showDebiti() {
+  var c = document.getElementById('main-card');
+  c.innerHTML = '<p class="stitle">Debiti verso banche</p>' +
+    debtHTML(D.banche,'banche') +
+    '<button class="btn-add" id="add-banca">+ Aggiungi banca creditrice</button>' +
+    '<p class="stitle">Debiti verso società finanziarie</p>' +
+    debtHTML(D.finanziarie,'fin') +
+    '<button class="btn-add" id="add-fin">+ Aggiungi finanziaria</button>' +
+    '<p class="stitle">Altri debiti (Fisco, INPS, fornitori, privati…)</p>' +
+    debtHTML(D.altriDebiti,'altri') +
+    '<button class="btn-add" id="add-altri">+ Aggiungi altro creditore</button>';
+
+  bindDebtInputs();
+  document.getElementById('add-banca').addEventListener('click', function() { D.banche.push({}); showDebiti(); });
+  document.getElementById('add-fin').addEventListener('click', function() { D.finanziarie.push({}); showDebiti(); });
+  document.getElementById('add-altri').addEventListener('click', function() { D.altriDebiti.push({}); showDebiti(); });
+}
+
+function showCreditori() {
+  var c = document.getElementById('main-card');
+  var azList = [['recupero','Recupero crediti (società esterna)'],['decreto','Decreto ingiuntivo emesso'],['pigImm','Pignoramento immobiliare'],['pigBusta','Pignoramento busta paga / pensione'],['pigCC','Pignoramento conto corrente'],['asta','Procedura esecutiva immobiliare (asta)']];
+  var checksAz = azList.map(function(a) {
+    return '<label><input type="checkbox" data-az="' + a[0] + '"' + (D.azioni[a[0]]?' checked':'') + '> ' + a[1] + '</label>';
+  }).join('');
+
+  var protExtra = D.protesti==='si' ?
+    row([fsel('Tipo protesti','f-tprot',[['cambiario','Cambiari'],['assegni','Su assegni'],['entrambi','Entrambi']],D.tipoProtesti),
+         fsel('Quanti episodi','f-qprot',[['uno','Uno'],['piu','Più di uno'],['ripetuto','Ripetutamente']],D.quantiProtesti)]) : '';
+
+  c.innerHTML = '<p class="stitle">Protesti</p>' +
+    '<div class="field" style="margin-bottom:14px"><label>Ha mai subito protesti?</label><div class="radios">' +
+    '<label><input type="radio" name="prot" value="no"' + (D.protesti==='no'?' checked':'') + '> No</label>' +
+    '<label><input type="radio" name="prot" value="si"' + (D.protesti==='si'?' checked':'') + '> Sì</label>' +
+    '</div></div>' + protExtra +
+    '<p class="stitle" style="margin-top:8px">Azioni in corso dei creditori</p>' +
+    '<div class="checks">' + checksAz + '</div>';
+
+  document.querySelectorAll('input[name="prot"]').forEach(function(r) {
+    r.addEventListener('change', function() { D.protesti = this.value; showCreditori(); });
+  });
+  bind('f-tprot','tipoProtesti'); bind('f-qprot','quantiProtesti');
+  document.querySelectorAll('[data-az]').forEach(function(cb) {
+    cb.addEventListener('change', function() { D.azioni[this.getAttribute('data-az')] = this.checked; });
+  });
+}
+
+function showStoria() {
+  var c = document.getElementById('main-card');
+  var motiviList = [['perdita_lavoro','Perdita del lavoro / disoccupazione'],['malattia','Malattia grave o spese mediche'],['separazione','Separazione o divorzio'],['azienda','Crisi o fallimento attività imprenditoriale'],['fideiussione','Fideiussione per conto di terzi'],['debiti_su_debiti','Sovraindebitamento progressivo'],['costi_abitativi','Costi abitativi insostenibili'],['altro','Altra causa']];
+  var checks = motiviList.map(function(m) {
+    return '<label><input type="checkbox" data-motivo="' + m[0] + '"' + (D.motiviPrincipali[m[0]]?' checked':'') + '> ' + m[1] + '</label>';
+  }).join('');
+
+  c.innerHTML = '<p class="stitle">Cause del sovraindebitamento</p>' +
+    '<div class="checks" style="margin-bottom:20px">' + checks + '</div>' +
+    '<p class="stitle">Narrazione della storia del debito</p>' +
+    '<p style="font-size:12px;color:#666;margin-bottom:10px">Descrivere le circostanze che hanno portato alla situazione attuale. Questo testo viene inserito nell\'istanza.</p>' +
+    '<div class="field"><textarea id="f-storia" placeholder="Es: A partire dal 2021, a causa della perdita del lavoro, ho accumulato arretrati su mutuo e finanziamenti...">' + (D.storiaDebito||'') + '</textarea></div>';
+
+  document.querySelectorAll('[data-motivo]').forEach(function(cb) {
+    cb.addEventListener('change', function() { D.motiviPrincipali[this.getAttribute('data-motivo')] = this.checked; });
+  });
+  var st = document.getElementById('f-storia');
+  if (st) { st.addEventListener('input', function() { D.storiaDebito = this.value; }); }
+}
+
+function calcTotDebiti() {
+  var tot = 0;
+  D.banche.forEach(function(b) { tot += parseFloat(b.residuo||0); });
+  D.finanziarie.forEach(function(f) { tot += parseFloat(f.residuo||0); });
+  D.altriDebiti.forEach(function(a) { tot += parseFloat(a.residuo||0); });
+  return tot;
+}
+
+function calcSpese() {
+  var mens = ['vitto','carburante','abbonamenti','luceGas','affittoSpesa','condominio','sigarette','scuola','garage','mutuo','altreRate','tempo','altroMens'];
+  var ann = ['assicurazioni','bolliVeicoli','spazzatura','vacanze','scuoleAnn','mediche'];
+  var tot = 0;
+  mens.forEach(function(k) { tot += parseFloat(D[k]||0); });
+  ann.forEach(function(k) { tot += parseFloat(D[k]||0)/12; });
+  return tot;
+}
+
+function analizza() {
+  var totDebiti = calcTotDebiti();
+  var reddito = parseFloat(D.redditoNetto||0) + parseFloat(D.coniugeReddito||0) + parseFloat(D.altriReddito||0);
+  var spese = calcSpese();
+  var saldo = reddito - spese;
+  var isPiva = D.tipoLavoro === 'autonomo';
+  var pig = D.azioni.pigImm || D.azioni.pigBusta || D.azioni.pigCC || D.azioni.asta;
+  var haImm = D.tipoAbitazione === 'proprieta';
+
+  var proc, motivo, motBreve;
+
+  if (isPiva) {
+    proc = 'Accordo di Composizione della Crisi';
+    motBreve = 'Titolare / ex titolare di P.IVA: procedura con accordo creditori';
+    motivo = 'Il richiedente è o è stato titolare di partita IVA. La procedura prevista dalla Legge 3/2012 per questa categoria è l\'Accordo di Composizione della Crisi, che richiede il consenso dei creditori rappresentanti almeno il 60% dell\'esposizione debitoria. Una volta omologato dal Tribunale, l\'accordo è vincolante per tutti i creditori, inclusi quelli dissenzienti.';
+  } else if (saldo > 200 && totDebiti > 0) {
+    proc = 'Piano del Consumatore';
+    motBreve = 'Saldo mensile positivo: piano di rientro senza consenso dei creditori';
+    motivo = 'La situazione reddituale mostra un saldo mensile disponibile positivo (€ ' + Math.round(saldo).toLocaleString('it-IT') + '). Il Piano del Consumatore è la procedura più vantaggiosa perché non richiede il consenso dei creditori: il piano viene valutato e omologato direttamente dal Tribunale su proposta dell\'OCC. Il giudice verifica la meritevolezza del debitore e la sostenibilità del piano.';
+  } else if (totDebiti > 0) {
+    proc = 'Liquidazione del Patrimonio';
+    motBreve = 'Saldo mensile insufficiente: liquidazione controllata per esdebitazione';
+    motivo = 'Il saldo mensile disponibile (€ ' + Math.round(saldo).toLocaleString('it-IT') + ') non consente di sostenere un piano di rientro. La Liquidazione del Patrimonio permette di cedere i beni non essenziali sotto il controllo di un Liquidatore nominato dal Tribunale, soddisfare i creditori in modo proporzionale e ottenere al termine la cosiddetta esdebitazione, ovvero la cancellazione definitiva dei debiti residui. È il "fresh start" previsto dalla legge per i debitori meritevoli.';
+  } else {
+    proc = 'Dati insufficienti — verifica necessaria';
+    motBreve = 'Completare le sezioni debiti e redditi';
+    motivo = 'I dati inseriti non sono sufficienti per determinare automaticamente la procedura più appropriata. Si prega di completare le sezioni relative ai debiti e al reddito, quindi contattare direttamente Hesperia APS per una valutazione.';
+  }
+
+  return { proc:proc, motivo:motivo, motBreve:motBreve, totDebiti:totDebiti, reddito:reddito, spese:spese, saldo:saldo, pig:pig, haImm:haImm };
+}
+
+function labelTipoLavoro(v) { return {dipendente:'Dipendente',autonomo:'Autonomo / P.IVA',pensione:'Pensionato/a',cig:'Cassa integrazione',disoccupato:'Disoccupato/a'}[v] || v; }
+function labelStatoCivile(v) { return {celibe:'Celibe/Nubile',coniugato:'Coniugato/a',convivente:'Convivente',separato:'Separato/a',divorziato:'Divorziato/a',vedovo:'Vedovo/a'}[v] || v; }
+function labelSiNo(v) { return v === 'si' ? 'Sì' : 'No'; }
+var AZIONI_LIST = [['recupero','Recupero crediti (società esterna)'],['decreto','Decreto ingiuntivo emesso'],['pigImm','Pignoramento immobiliare'],['pigBusta','Pignoramento busta paga / pensione'],['pigCC','Pignoramento conto corrente'],['asta','Procedura esecutiva immobiliare (asta)']];
+var MOTIVI_MAP = {perdita_lavoro:'Perdita del lavoro / disoccupazione',malattia:'Malattia grave o spese mediche',separazione:'Separazione o divorzio',azienda:'Crisi o fallimento attività imprenditoriale',fideiussione:'Fideiussione per conto di terzi',debiti_su_debiti:'Sovraindebitamento progressivo',costi_abitativi:'Costi abitativi insostenibili',altro:'Altra causa'};
+
+// Costruisce il testo integrale del documento: tutte le risposte del
+// questionario + l'istanza generata + i dati di firma.
+// Costruisce le sezioni 1-9 come dati strutturati, riusate sia per l'export
+// testuale sia per il PDF, cosi' i due formati restano sempre allineati.
+function buildSections(an) {
+  var sections = [];
+  sections.push(['1. DATI ANAGRAFICI', [
+    'Cognome e nome: ' + (D.cognome||'') + ' ' + (D.nome||''),
+    'Luogo e data di nascita: ' + (D.luogoNascita||'-') + ', ' + (D.dataNascita ? new Date(D.dataNascita).toLocaleDateString('it-IT') : '-'),
+    'Residenza: ' + (D.residenza||'-') + ', ' + (D.comune||'-') + ' (' + (D.cap||'-') + ')',
+    'Codice Fiscale: ' + (D.cf||'-'),
+    'E-mail: ' + (D.email||'-') + '   PEC: ' + (D.pec||'-'),
+    'Telefoni: ' + ([D.tel1,D.tel2,D.tel3].filter(Boolean).join(' / ') || '-')
+  ]]);
+
+  var lavoroLines = ['Situazione lavorativa: ' + labelTipoLavoro(D.tipoLavoro)];
+  if (D.tipoLavoro === 'dipendente') lavoroLines.push('Qualifica: ' + D.qualifica, 'Datore di lavoro: ' + (D.datoreLavoro||'-'), 'Data assunzione: ' + (D.dataAssunzione||'-'));
+  if (D.tipoLavoro === 'autonomo') lavoroLines.push('Professione: ' + (D.professione||'-'), 'Settore: ' + (D.settore||'-'), 'N. CCIAA: ' + (D.cciaaN||'-') + '  Anno iscrizione: ' + (D.cciaaAnno||'-'));
+  if (D.tipoLavoro === 'pensione') lavoroLines.push('In pensione dall\'anno: ' + (D.annoPensione||'-'));
+  if (D.tipoLavoro === 'cig') lavoroLines.push('CIG dall\'anno: ' + (D.annoCig||'-'));
+  if (D.tipoLavoro === 'disoccupato') lavoroLines.push('Disoccupato/a dal: ' + (D.dalDisoc||'-'));
+  lavoroLines.push('Reddito mensile netto: € ' + fmt(D.redditoNetto), 'Reddito annuo lordo: € ' + fmt(D.redditoLordo));
+  sections.push(['2. LAVORO E REDDITO', lavoroLines]);
+
+  var famLines = ['Stato civile: ' + labelStatoCivile(D.statoCivile), 'Comunione dei beni: ' + labelSiNo(D.comunioneBeni)];
+  if (D.statoCivile === 'coniugato' || D.statoCivile === 'convivente') famLines.push('Coniuge/convivente: ' + (D.coniugeNome||'-') + ' - reddito netto mensile: € ' + fmt(D.coniugeReddito));
+  famLines.push('Reddito altri familiari conviventi: € ' + fmt(D.altriReddito) + '/mese');
+  if (D.familiari.length) {
+    famLines.push('Altri componenti del nucleo:');
+    D.familiari.forEach(function(f) {
+      famLines.push('  - ' + (f.nome||'N.D.') + ' | parentela: ' + (f.parentela||'-') + ' | nato/a il: ' + (f.dataNascita ? new Date(f.dataNascita).toLocaleDateString('it-IT') : '-') + ' | condizione: ' + (f.condizione||'-') + ' | reddito mensile netto: € ' + fmt(f.reddito));
+    });
+  }
+  famLines.push('Totale mensile netto nucleo: € ' + fmt(D.totMensile), 'Totale annuo lordo nucleo: € ' + fmt(D.totAnnuo));
+  sections.push(['3. NUCLEO FAMILIARE', famLines]);
+
+  var patLines = ['Abitazione: ' + (D.tipoAbitazione === 'proprieta' ? 'Proprietà' : 'Affitto')];
+  if (D.tipoAbitazione === 'proprieta') patLines.push('Anno acquisto: ' + (D.annoAcquisto||'-'), 'Valore stimato: € ' + fmt(D.valoreImmobile), 'Indirizzo: ' + (D.indirizzoImm||'-'));
+  else patLines.push('Contratto dal ' + (D.affittoDal||'-') + ' al ' + (D.affittoAl||'-'), 'Canone mensile: € ' + fmt(D.canone), 'In fase di sfratto: ' + labelSiNo(D.sfratto));
+  patLines.push('Tipo residenza: ' + (D.tipoResidenza==='appartamento'?'Appartamento':'Casa indipendente') + ' - ' + (D.mq||'-') + ' mq');
+  patLines.push('Autoveicoli: ' + (D.autoveicoli||'-'), 'Altri immobili/terreni: ' + (D.altriImmobili||'-'));
+  sections.push(['4. PATRIMONIO E ABITAZIONE', patLines]);
+
+  var speseM = [['vitto','Vitto e alimentari'],['carburante','Carburante'],['abbonamenti','Abbonamenti trasporti'],['luceGas','Luce/Gas/Telefono'],['affittoSpesa','Affitto'],['condominio','Condominio'],['sigarette','Sigarette'],['scuola','Scuola e sport'],['garage','Garage'],['mutuo','Rata mutuo'],['altreRate','Rate altri finanziamenti'],['tempo','Tempo libero'],['altroMens','Altro mensile']];
+  var speseA = [['assicurazioni','Assicurazioni varie'],['bolliVeicoli','Bollo veicoli'],['spazzatura','TARI'],['vacanze','Vacanze'],['scuoleAnn','Scuole/Università'],['mediche','Spese mediche']];
+  var speseLines = speseM.map(function(m){ return m[1] + ' (mensile): € ' + fmt(D[m[0]]); }).concat(speseA.map(function(a){ return a[1] + ' (annuale): € ' + fmt(D[a[0]]); }));
+  speseLines.push('Totale spese fisse equivalenti mensili: € ' + fmt(calcSpese()));
+  sections.push(['5. SPESE', speseLines]);
+
+  var debtLines = [];
+  if (D.banche.length) { debtLines.push('Banche:'); D.banche.forEach(function(b){ debtLines.push('  - ' + (b.nome||'N.D.') + ' | iniziale € ' + fmt(b.iniziale) + ' | rata € ' + fmt(b.rataMens) + ' | residuo € ' + fmt(b.residuo) + ' | rate tot/res/arr: ' + (b.rateTot||'-') + '/' + (b.rateRes||'-') + '/' + (b.rateArr||'-')); }); }
+  if (D.finanziarie.length) { debtLines.push('Finanziarie:'); D.finanziarie.forEach(function(f){ debtLines.push('  - ' + (f.nome||'N.D.') + ' | iniziale € ' + fmt(f.iniziale) + ' | rata € ' + fmt(f.rataMens) + ' | residuo € ' + fmt(f.residuo) + ' | rate tot/res/arr: ' + (f.rateTot||'-') + '/' + (f.rateRes||'-') + '/' + (f.rateArr||'-')); }); }
+  if (D.altriDebiti.length) { debtLines.push('Altri creditori:'); D.altriDebiti.forEach(function(a){ debtLines.push('  - ' + (a.nome||'N.D.') + (a.desc?' ('+a.desc+')':'') + ' | residuo € ' + fmt(a.residuo)); }); }
+  debtLines.push('TOTALE ESPOSIZIONE DEBITORIA: € ' + fmt(calcTotDebiti()));
+  sections.push(['6. DEBITI', debtLines]);
+
+  var creditLines = ['Protesti subiti: ' + labelSiNo(D.protesti)];
+  if (D.protesti === 'si') creditLines.push('Tipo: ' + D.tipoProtesti + ' - Episodi: ' + D.quantiProtesti);
+  var azSel = AZIONI_LIST.filter(function(a){ return D.azioni[a[0]]; }).map(function(a){ return a[1]; });
+  creditLines.push('Azioni creditori in corso: ' + (azSel.length ? azSel.join('; ') : 'Nessuna segnalata'));
+  sections.push(['7. PROTESTI E AZIONI DEI CREDITORI', creditLines]);
+
+  var motSel = Object.keys(D.motiviPrincipali).filter(function(k){ return D.motiviPrincipali[k]; }).map(function(k){ return MOTIVI_MAP[k]||k; });
+  sections.push(['8. CAUSE E STORIA DEL DEBITO', [
+    'Cause principali: ' + (motSel.length ? motSel.join(', ') : '-'),
+    'Racconto: ' + (D.storiaDebito || '-')
+  ]]);
+
+  sections.push(['9. ANALISI E PROCEDURA CONSIGLIATA', [
+    'Procedura individuata: ' + an.proc,
+    'Motivazione: ' + an.motivo,
+    'Reddito mensile netto nucleo: € ' + fmt(an.reddito),
+    'Spese fisse mensili: € ' + fmt(an.spese),
+    'Saldo mensile disponibile: € ' + fmt(an.saldo),
+    'Totale esposizione debitoria: € ' + fmt(an.totDebiti),
+    an.pig ? 'ATTENZIONE: risultano procedure esecutive/pignoramenti in corso.' : ''
+  ]]);
+
+  return sections;
+}
+
+function sectionLines(title, lines) {
+  var out = '\n' + title + '\n' + '-'.repeat(title.length) + '\n';
+  lines.forEach(function(l) { if (l) out += l + '\n'; });
+  return out;
+}
+
+function generaDocumentoCompleto(an) {
+  var oggi = new Date().toLocaleDateString('it-IT');
+  var s = 'HESPERIA APS - QUESTIONARIO SOVRAINDEBITAMENTO (Legge n.3/2012)\n';
+  s += 'Documento generato il ' + oggi + '\n';
+  s += 'Consulente incaricato: ' + ((D.consulente.nome||'') + ' ' + (D.consulente.cognome||'')).trim() + ' - ' + labelRuoloConsulente(D.consulente.ruolo) + (D.consulente.struttura ? ' - ' + D.consulente.struttura : '') + '\n';
+  s += (D.consulente.email ? 'E-mail consulente: ' + D.consulente.email + '   ' : '') + (D.consulente.tel ? 'Tel: ' + D.consulente.tel : '') + '\n';
+  s += 'Data compilazione: ' + (D.consulente.dataCompilazione ? new Date(D.consulente.dataCompilazione).toLocaleDateString('it-IT') : oggi) + '\n';
+  s += '='.repeat(60) + '\n';
+
+  buildSections(an).forEach(function(sec) { s += sectionLines(sec[0], sec[1]); });
+
+  s += '\n\n' + '='.repeat(60) + '\n10. DICHIARAZIONE E FIRMA DEL CLIENTE\n' + '='.repeat(60) + '\n';
+  s += 'Il/la sottoscritto/a dichiara che tutte le informazioni fornite nel presente questionario corrispondono al vero e ne autorizza l\'utilizzo da parte di Hesperia APS ai fini della procedura di sovraindebitamento.\n\n';
+  s += 'Luogo: ' + (D.firma.luogo || '-') + '        Data: ' + (D.firma.data ? new Date(D.firma.data).toLocaleDateString('it-IT') : oggi) + '\n';
+  s += 'Firmato digitalmente da: ' + (D.nome||'') + ' ' + (D.cognome||'') + '\n';
+  s += (D.firma.imgData ? '[Firma grafica acquisita - vedi versione PDF per l\'immagine della firma]\n' : '[Firma non ancora acquisita]\n');
+  s += 'Questionario raccolto da: ' + ((D.consulente.nome||'') + ' ' + (D.consulente.cognome||'')).trim() + ' (' + labelRuoloConsulente(D.consulente.ruolo) + ')\n';
+  return s;
+}
+
+// Sostituisce i caratteri non supportati dal font standard del PDF (linee
+// unicode, emoji) con equivalenti ASCII, per evitare glifi corrotti.
+function sanitizeForPdf(text) {
+  return (text || '')
+    .replace(/[━─═]+/g, function(m) { return '-'.repeat(Math.min(m.length, 70)); })
+    .replace(/[⚠✓📋⬇🖨🗑]/g, '')
+    .replace(/[""]/g, '"').replace(/['']/g, "'");
+}
+
+async function generaPDFCompleto(an) {
+  if (!window.jspdf) throw new Error('Libreria PDF non disponibile');
+  var jsPDF = window.jspdf.jsPDF;
+  var doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  var pageW = doc.internal.pageSize.getWidth();
+  var margin = 48;
+  var maxW = pageW - margin * 2;
+  var y = margin;
+  var lineH = 13;
+
+  function ensureSpace(h) {
+    if (y + h > doc.internal.pageSize.getHeight() - margin) { doc.addPage(); y = margin; }
+  }
+  function heading(text) {
+    ensureSpace(26);
+    doc.setFont('helvetica', 'bold'); doc.setFontSize(11); doc.setTextColor(26,140,100);
+    doc.text(sanitizeForPdf(text), margin, y);
+    y += 16;
+    doc.setDrawColor(220,220,214); doc.line(margin, y-10, pageW-margin, y-10);
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5); doc.setTextColor(30,30,30);
+  }
+  function para(text) {
+    var lines = doc.splitTextToSize(sanitizeForPdf(text) || '-', maxW);
+    lines.forEach(function(l) { ensureSpace(lineH); doc.text(l, margin, y); y += lineH; });
+  }
+  function monoBlock(text) {
+    doc.setFont('courier', 'normal'); doc.setFontSize(8.5);
+    var raw = sanitizeForPdf(text).split('\n');
+    raw.forEach(function(line) {
+      var wrapped = doc.splitTextToSize(line || ' ', maxW);
+      wrapped.forEach(function(l) { ensureSpace(11); doc.text(l, margin, y); y += 11; });
+    });
+    doc.setFont('helvetica', 'normal'); doc.setFontSize(9.5);
+  }
+
+  doc.setFont('helvetica', 'bold'); doc.setFontSize(15); doc.setTextColor(26,140,100);
+  doc.text('Hesperia APS - Questionario Sovraindebitamento', margin, y); y += 18;
+  doc.setFont('helvetica', 'normal'); doc.setFontSize(9); doc.setTextColor(100,100,100);
+  doc.text('Legge n.3/2012 - Documento generato il ' + new Date().toLocaleDateString('it-IT'), margin, y); y += 14;
+  var consNome = ((D.consulente.nome||'') + ' ' + (D.consulente.cognome||'')).trim() || '-';
+  doc.text('Consulente incaricato: ' + consNome + ' - ' + labelRuoloConsulente(D.consulente.ruolo) + (D.consulente.struttura ? ' - ' + D.consulente.struttura : ''), margin, y); y += 12;
+  if (D.consulente.email || D.consulente.tel) { doc.text([D.consulente.email, D.consulente.tel].filter(Boolean).join('   Tel: '), margin, y); y += 12; }
+  doc.text('Data compilazione: ' + (D.consulente.dataCompilazione ? new Date(D.consulente.dataCompilazione).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT')), margin, y); y += 20;
+
+  buildSections(an).forEach(function(sec) {
+    heading(sec[0]);
+    para(sec[1].filter(Boolean).join('\n'));
+    y += 6;
+  });
+
+  heading('10. Dichiarazione e firma del cliente');
+  para('Il/la sottoscritto/a dichiara che tutte le informazioni fornite nel presente questionario corrispondono al vero e ne autorizza l\'utilizzo da parte di Hesperia APS ai fini della procedura di sovraindebitamento.');
+  y += 6;
+  para('Luogo: ' + (D.firma.luogo || '-') + '      Data: ' + (D.firma.data ? new Date(D.firma.data).toLocaleDateString('it-IT') : new Date().toLocaleDateString('it-IT')));
+  para('Nome e cognome: ' + (D.nome||'') + ' ' + (D.cognome||''));
+  y += 8;
+  ensureSpace(110);
+  doc.setFont('helvetica', 'bold'); doc.text('Firma:', margin, y); y += 6;
+  if (D.firma.imgData) {
+    try { doc.addImage(D.firma.imgData, 'PNG', margin, y, 200, 70); } catch(e) {}
+  } else {
+    doc.setDrawColor(200,200,200); doc.rect(margin, y, 200, 70);
+  }
+  y += 88;
+  para('Questionario raccolto da: ' + consNome + ' (' + labelRuoloConsulente(D.consulente.ruolo) + ')');
+
+  return doc;
+}
+
+var sigCtx = null, sigDrawing = false, sigHasStroke = false;
+
+function setupSignaturePad() {
+  var canvas = document.getElementById('sig-canvas');
+  if (!canvas) return;
+  var ratio = window.devicePixelRatio || 1;
+  var w = canvas.clientWidth, h = canvas.clientHeight;
+  canvas.width = w * ratio;
+  canvas.height = h * ratio;
+  sigCtx = canvas.getContext('2d');
+  sigCtx.scale(ratio, ratio);
+  sigCtx.lineWidth = 2.2;
+  sigCtx.lineCap = 'round';
+  sigCtx.strokeStyle = '#1a1a1a';
+  sigHasStroke = false;
+
+  if (D.firma.imgData) {
+    var img = new Image();
+    img.onload = function() { sigCtx.drawImage(img, 0, 0, w, h); sigHasStroke = true; };
+    img.src = D.firma.imgData;
+  }
+
+  function pos(e) {
+    var rect = canvas.getBoundingClientRect();
+    var cx = (e.touches ? e.touches[0].clientX : e.clientX) - rect.left;
+    var cy = (e.touches ? e.touches[0].clientY : e.clientY) - rect.top;
+    return { x: cx, y: cy };
+  }
+  function start(e) { e.preventDefault(); sigDrawing = true; var p = pos(e); sigCtx.beginPath(); sigCtx.moveTo(p.x, p.y); }
+  function move(e) { if (!sigDrawing) return; e.preventDefault(); var p = pos(e); sigCtx.lineTo(p.x, p.y); sigCtx.stroke(); sigHasStroke = true; }
+  function end() {
+    if (!sigDrawing) return;
+    sigDrawing = false;
+    D.firma.imgData = sigHasStroke ? canvas.toDataURL('image/png') : null;
+    updateFirmaButtonState();
+  }
+  canvas.addEventListener('mousedown', start);
+  canvas.addEventListener('mousemove', move);
+  window.addEventListener('mouseup', end);
+  canvas.addEventListener('touchstart', start, { passive: false });
+  canvas.addEventListener('touchmove', move, { passive: false });
+  canvas.addEventListener('touchend', end);
+}
+
+function clearSignature() {
+  var canvas = document.getElementById('sig-canvas');
+  if (!canvas || !sigCtx) return;
+  sigCtx.clearRect(0, 0, canvas.width, canvas.height);
+  sigHasStroke = false;
+  D.firma.imgData = null;
+  updateFirmaButtonState();
+}
+
+function updateFirmaButtonState() {
+  var btn = document.getElementById('btn-download-final');
+  if (!btn) return;
+  var ready = !!D.firma.imgData && D.firma.accetta && D.nome && D.cognome;
+  btn.disabled = !ready;
+}
+
+function showFirma() {
+  var an = analizza();
+  var c = document.getElementById('main-card');
+  var nomeCompleto = (D.nome||'') + ' ' + (D.cognome||'');
+
+  c.innerHTML = '<p class="stitle">Firma e download del documento completo</p>' +
+    '<div class="alert alert-warn">Rileggi le informazioni inserite. Firmando confermi che quanto dichiarato è veritiero. Il documento scaricato conterrà l\'intero questionario, la bozza dell\'istanza e la tua firma.</div>' +
+    row([fi('Luogo', 'f-fluogo', 'text', D.firma.luogo, 'es. Milano'), fi('Data', 'f-fdata', 'date', D.firma.data, '')]) +
+    row([fi('Nome e cognome (per esteso)', 'f-fnome', 'text', nomeCompleto, '')]) +
+    '<p class="stitle" style="margin-top:18px">Firma qui sotto</p>' +
+    '<div class="sig-wrap"><canvas id="sig-canvas"></canvas></div>' +
+    '<div class="sig-hint">Disegna la firma con il mouse o il dito (su schermo touch).</div>' +
+    '<button class="btn btn-secondary" id="btn-clear-sig" type="button" style="margin-bottom:14px">🗑 Cancella firma</button>' +
+    '<div class="check-line"><input type="checkbox" id="f-accetta"' + (D.firma.accetta?' checked':'') + '><label for="f-accetta">Dichiaro che le informazioni fornite in questo questionario sono complete e veritiere e ne autorizzo l\'utilizzo da parte di Hesperia APS ai fini della procedura di sovraindebitamento.</label></div>' +
+    '<div class="action-row">' +
+      '<button class="btn btn-primary btn-big" id="btn-download-final" disabled>⬇ Scarica documento completo firmato (PDF)</button>' +
+      '<button class="btn btn-secondary" id="btn-download-txt">⬇ Scarica documento completo senza firma (PDF)</button>' +
+    '</div>' +
+    '<div class="dl-status" id="dl-status"></div>';
+
+  document.getElementById('f-fluogo').addEventListener('input', function() { D.firma.luogo = this.value; });
+  document.getElementById('f-fdata').addEventListener('input', function() { D.firma.data = this.value; });
+  document.getElementById('f-fnome').addEventListener('input', function() {
+    var parts = this.value.trim().split(/\s+/);
+    D.nome = parts.shift() || '';
+    D.cognome = parts.join(' ');
+  });
+  document.getElementById('f-accetta').addEventListener('change', function() { D.firma.accetta = this.checked; updateFirmaButtonState(); });
+  document.getElementById('btn-clear-sig').addEventListener('click', clearSignature);
+
+  setupSignaturePad();
+  updateFirmaButtonState();
+
+  document.getElementById('btn-download-txt').addEventListener('click', async function() {
+    var statusEl = document.getElementById('dl-status');
+    statusEl.textContent = 'Generazione del documento in corso…';
+    statusEl.style.color = '#555';
+    var an2 = analizza();
+    try {
+      var doc = await generaPDFCompleto(an2);
+      var blob = doc.output('blob');
+      downloadBlob(blob, 'questionario_completo_' + slugCognome() + '.pdf', 'dl-status');
+    } catch (err) {
+      statusEl.textContent = '⚠ Generazione PDF non disponibile in questo ambiente (probabile assenza di connessione). Scarico la versione testo.';
+      statusEl.style.color = '#c03030';
+      var testo = generaDocumentoCompleto(an2);
+      var blob2 = new Blob([testo], { type: 'text/plain;charset=utf-8' });
+      downloadBlob(blob2, 'questionario_completo_' + slugCognome() + '.txt', 'dl-status');
+    }
+  });
+
+  document.getElementById('btn-download-final').addEventListener('click', async function() {
+    var statusEl = document.getElementById('dl-status');
+    if (!D.firma.imgData || !D.firma.accetta) {
+      statusEl.textContent = '⚠ Firma e conferma la dichiarazione prima di scaricare.';
+      statusEl.style.color = '#c03030';
+      return;
+    }
+    statusEl.textContent = 'Generazione del documento in corso…';
+    statusEl.style.color = '#555';
+    var an2 = analizza();
+    try {
+      var doc = await generaPDFCompleto(an2);
+      var blob = doc.output('blob');
+      downloadBlob(blob, 'questionario_firmato_' + slugCognome() + '.pdf', 'dl-status');
+    } catch (err) {
+      statusEl.textContent = '⚠ Generazione PDF non disponibile in questo ambiente (probabile assenza di connessione). Scarico la versione testo con firma allegata come immagine separata.';
+      statusEl.style.color = '#c03030';
+      var testo = generaDocumentoCompleto(an2);
+      var blob2 = new Blob([testo], { type: 'text/plain;charset=utf-8' });
+      downloadBlob(blob2, 'questionario_completo_' + slugCognome() + '.txt', 'dl-status');
+      if (D.firma.imgData) {
+        fetch(D.firma.imgData).then(function(r){ return r.blob(); }).then(function(imgBlob){
+          downloadBlob(imgBlob, 'firma_' + slugCognome() + '.png', null);
+        });
+      }
+    }
+  });
+}
+
+function showAnalisi() {
+  var an = analizza();
+  var c = document.getElementById('main-card');
+  var badgeCls = an.proc.includes('Consumatore') ? 'bg-green' : (an.proc.includes('Liquidazione') ? 'bg-blue' : 'bg-amber');
+
+  c.innerHTML = '<span class="badge ' + badgeCls + '">' + an.proc + '</span>' +
+    (an.pig ? '<span class="badge bg-red">⚠ Urgente — esecuzioni in corso</span>' : '') +
+    '<h2 class="result-title">Procedura consigliata</h2>' +
+    '<p class="result-text">' + an.motivo + '</p>' +
+    (an.pig ? '<div class="alert alert-red">Sono in corso pignoramenti. Contattare Hesperia APS con urgenza per bloccare le esecuzioni.</div>' : '') +
+    '<div class="stat-grid">' +
+      '<div class="stat"><div class="stat-label">Esposizione debitoria totale</div><div class="stat-val red">€ ' + Math.round(an.totDebiti).toLocaleString('it-IT') + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Saldo mensile disponibile</div><div class="stat-val ' + (an.saldo>=0?'green':'red') + '">€ ' + Math.round(an.saldo).toLocaleString('it-IT') + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Reddito mensile netto</div><div class="stat-val">€ ' + Math.round(an.reddito).toLocaleString('it-IT') + '</div></div>' +
+      '<div class="stat"><div class="stat-label">Spese fisse mensili</div><div class="stat-val">€ ' + Math.round(an.spese).toLocaleString('it-IT') + '</div></div>' +
+    '</div>' +
+    '<div class="alert alert-green" style="margin-top:16px"><strong>Prossimo passo:</strong> premi "Procedi alla firma →" qui sotto per firmare e scaricare il documento completo con tutti i dati del questionario, pronto da consegnare ad Hesperia APS.</div>';
+}
+
+function slugCognome() {
+  return (D.cognome || 'bozza').toLowerCase().replace(/[^a-z0-9]+/g, '_');
+}
+
+// Robust download helper: tries the standard blob+anchor technique, falls back
+// to opening the content in a new tab (works even when the automatic
+// "download" attribute is blocked by a restrictive viewer/sandbox), and as a
+// last resort shows the raw content so the user can copy/save it manually.
+function downloadBlob(blob, filename, statusElId) {
+  var statusEl = statusElId ? document.getElementById(statusElId) : null;
+  function setStatus(msg, isErr) {
+    if (statusEl) { statusEl.textContent = msg; statusEl.style.color = isErr ? '#c03030' : '#1a6644'; }
+  }
+  try {
+    if (window.navigator && window.navigator.msSaveOrOpenBlob) {
+      window.navigator.msSaveOrOpenBlob(blob, filename);
+      setStatus('✓ Download avviato: ' + filename);
+      return true;
+    }
+    var url = URL.createObjectURL(blob);
+    var a = document.createElement('a');
+    a.href = url;
+    a.download = filename;
+    a.rel = 'noopener';
+    a.style.display = 'none';
+    document.body.appendChild(a);
+    a.click();
+    setTimeout(function() {
+      document.body.removeChild(a);
+      URL.revokeObjectURL(url);
+    }, 4000);
+    setStatus('✓ Download avviato: ' + filename + ' (controlla la cartella Download)');
+    return true;
+  } catch (err) {
+    try {
+      var url2 = URL.createObjectURL(blob);
+      var win = window.open(url2, '_blank');
+      if (!win) {
+        setStatus('⚠ Il browser ha bloccato il download automatico. Consenti i popup oppure usa "Stampa" e scegli "Salva come PDF".', true);
+      } else {
+        setStatus('Il file è stato aperto in una nuova scheda: usa "Salva con nome" per scaricarlo.');
+      }
+      return !!win;
+    } catch (err2) {
+      setStatus('⚠ Download non riuscito in questo ambiente. Usa il pulsante "Stampa" e scegli "Salva come PDF", oppure apri il questionario in un browser normale (Chrome/Edge/Firefox/Safari).', true);
+      return false;
+    }
+  }
+}
+
+async function downloadBozza() {
+  var an = analizza();
+  try {
+    var doc = await generaPDFCompleto(an);
+    var blob = doc.output('blob');
+    downloadBlob(blob, 'bozza_questionario_' + slugCognome() + '.pdf', null);
+  } catch (err) {
+    var testo = generaDocumentoCompleto(an);
+    var blob2 = new Blob([testo], {type:'text/plain;charset=utf-8'});
+    downloadBlob(blob2, 'bozza_questionario_' + slugCognome() + '.txt', null);
+  }
+}
+
+document.getElementById('btn-next').addEventListener('click', function() {
+  if (step < STEPS.length-1) { step++; render(); }
+});
+document.getElementById('btn-prev').addEventListener('click', function() {
+  if (step > 0) { step--; render(); }
+});
+document.getElementById('btn-download-global').addEventListener('click', downloadBozza);
+
+render();
+</script>
+</body>
+</html>
