@@ -799,6 +799,75 @@ function updateFirmaButtonState() {
   if (!btn) return;
   var ready = !!D.firma.imgData && D.firma.accetta && D.nome && D.cognome;
   btn.disabled = !ready;
+  var btnInvia = document.getElementById('btn-invia-studio');
+  if (btnInvia) btnInvia.disabled = !ready;
+}
+
+// Indirizzo del collegamento automatico che riceve il questionario compilato
+// e lo inoltra via email allo Studio per l'analisi e il preventivo.
+var WEBHOOK_INVIO_STUDIO = 'https://webhooks.tasklet.ai/v1/public/webhook/a_8v42s91g7p0avwmajcca?token=a191e2493529e50bad760b8414ecf02e';
+
+function blobToBase64(blob) {
+  return new Promise(function(resolve, reject) {
+    var reader = new FileReader();
+    reader.onloadend = function() {
+      var result = reader.result || '';
+      var idx = result.indexOf(',');
+      resolve(idx >= 0 ? result.slice(idx + 1) : result);
+    };
+    reader.onerror = reject;
+    reader.readAsDataURL(blob);
+  });
+}
+
+async function inviaAlloStudio() {
+  var statusEl = document.getElementById('invio-status');
+  if (!D.firma.imgData || !D.firma.accetta) {
+    statusEl.textContent = '⚠ Firma e conferma la dichiarazione prima di inviare.';
+    statusEl.style.color = '#c03030';
+    return;
+  }
+  statusEl.textContent = 'Invio in corso allo Studio…';
+  statusEl.style.color = '#555';
+  var btnInvia = document.getElementById('btn-invia-studio');
+  if (btnInvia) btnInvia.disabled = true;
+  try {
+    var an2 = analizza();
+    var doc = await generaPDFCompleto(an2);
+    var blob = doc.output('blob');
+    var base64 = await blobToBase64(blob);
+    var filename = 'questionario_firmato_' + slugCognome() + '.pdf';
+    var payload = {
+      pdfBase64: base64,
+      filename: filename,
+      cliente: { nome: D.nome || '', cognome: D.cognome || '', email: D.email || '', telefono: D.tel2 || D.tel1 || D.tel3 || '' },
+      consulente: {
+        nome: D.consulente.nome || '',
+        cognome: D.consulente.cognome || '',
+        ruolo: labelRuoloConsulente(D.consulente.ruolo),
+        struttura: D.consulente.struttura || '',
+        email: D.consulente.email || '',
+        tel: D.consulente.tel || ''
+      },
+      dataCompilazione: D.consulente.dataCompilazione || ''
+    };
+    var resp = await fetch(WEBHOOK_INVIO_STUDIO, {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify(payload)
+    });
+    if (resp.ok) {
+      statusEl.textContent = '✓ Questionario inviato con successo allo Studio per l\'analisi e il preventivo.';
+      statusEl.style.color = '#1a6644';
+    } else {
+      throw new Error('HTTP ' + resp.status);
+    }
+  } catch (err) {
+    statusEl.textContent = '⚠ Invio non riuscito (' + (err && err.message ? err.message : 'errore di rete') + '). Puoi comunque scaricare il PDF e inviarlo manualmente.';
+    statusEl.style.color = '#c03030';
+  } finally {
+    if (btnInvia) btnInvia.disabled = false;
+  }
 }
 
 function showFirma() {
@@ -816,10 +885,12 @@ function showFirma() {
     '<button class="btn btn-secondary" id="btn-clear-sig" type="button" style="margin-bottom:14px">🗑 Cancella firma</button>' +
     '<div class="check-line"><input type="checkbox" id="f-accetta"' + (D.firma.accetta?' checked':'') + '><label for="f-accetta">Dichiaro che le informazioni fornite in questo questionario sono complete e veritiere e ne autorizzo l\'utilizzo da parte di Hesperia APS ai fini della procedura di sovraindebitamento.</label></div>' +
     '<div class="action-row">' +
-      '<button class="btn btn-primary btn-big" id="btn-download-final" disabled>⬇ Scarica documento completo firmato (PDF)</button>' +
+      '<button class="btn btn-primary btn-big" id="btn-invia-studio" disabled>📧 Invia allo Studio per analisi e preventivo</button>' +
+      '<button class="btn btn-secondary" id="btn-download-final" disabled>⬇ Scarica documento completo firmato (PDF)</button>' +
       '<button class="btn btn-secondary" id="btn-download-txt">⬇ Scarica documento completo senza firma (PDF)</button>' +
     '</div>' +
-    '<div class="dl-status" id="dl-status"></div>';
+    '<div class="dl-status" id="dl-status"></div>' +
+    '<div class="dl-status" id="invio-status"></div>';
 
   document.getElementById('f-fluogo').addEventListener('input', function() { D.firma.luogo = this.value; });
   document.getElementById('f-fdata').addEventListener('input', function() { D.firma.data = this.value; });
@@ -830,6 +901,7 @@ function showFirma() {
   });
   document.getElementById('f-accetta').addEventListener('change', function() { D.firma.accetta = this.checked; updateFirmaButtonState(); });
   document.getElementById('btn-clear-sig').addEventListener('click', clearSignature);
+  document.getElementById('btn-invia-studio').addEventListener('click', inviaAlloStudio);
 
   setupSignaturePad();
   updateFirmaButtonState();
