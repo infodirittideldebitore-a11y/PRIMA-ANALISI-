@@ -117,10 +117,11 @@ body { font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Arial, sans-s
 <script src="https://cdnjs.cloudflare.com/ajax/libs/jspdf/2.5.1/jspdf.umd.min.js"></script>
 <script>
 var step = 0;
-var STEPS = ['Consulente','Anagrafica','Lavoro','Famiglia','Patrimonio','Spese','Debiti','Creditori','Storia','Analisi','Firma'];
+var STEPS = ['Consulente','Requisiti','Anagrafica','Lavoro','Famiglia','Patrimonio','Spese','Debiti','Creditori','Storia','Analisi','Firma'];
 
 var D = {
   consulente: { nome:'', cognome:'', ruolo:'consulente', struttura:'', codice:'', email:'', tel:'', dataCompilazione:new Date().toISOString().slice(0,10) },
+  requisiti: { cond1:'', cond2:'', cond3:'', cond4:'' },
   cognome:'', nome:'', luogoNascita:'', dataNascita:'', residenza:'', comune:'', cap:'', cf:'', email:'', pec:'', tel1:'', tel2:'', tel3:'',
   tipoLavoro:'dipendente', qualifica:'impiegato', datoreLavoro:'', dataAssunzione:'', professione:'', settore:'', cciaaN:'', cciaaAnno:'', annoPensione:'', annoCig:'', dalDisoc:'', redditoNetto:'', redditoLordo:'',
   statoCivile:'celibe', comunioneBeni:'no', coniugeNome:'', coniugeReddito:'', altriReddito:'', totMensile:'', totAnnuo:'',
@@ -177,7 +178,7 @@ function render() {
   updateTop();
   var card = document.getElementById('main-card');
   card.innerHTML = '';
-  var fns = [showConsulente, showAnagrafica, showLavoro, showFamiglia, showPatrimonio, showSpese, showDebiti, showCreditori, showStoria, showAnalisi, showFirma];
+  var fns = [showConsulente, showRequisiti, showAnagrafica, showLavoro, showFamiglia, showPatrimonio, showSpese, showDebiti, showCreditori, showStoria, showAnalisi, showFirma];
   fns[step]();
 }
 
@@ -233,6 +234,76 @@ function showConsulente() {
 }
 
 function labelRuoloConsulente(v) { return {consulente:'Consulente',gestore:'Gestore della Crisi',collaboratore:'Collaboratore/Segreteria',altro:'Altro'}[v] || v; }
+
+var REQUISITI_DOMANDE = [
+  { key:'cond1', okVal:'si',
+    testo: 'Il richiedente NON ha usufruito di procedure di sovraindebitamento nei cinque anni precedenti?',
+    nota: 'Requisito soddisfatto se la risposta è SI.' },
+  { key:'cond2', okVal:'si',
+    testo: 'Il richiedente NON ha subito sentenze passate in giudicato o pendenti per reati fiscali (es. evasione IVA oltre € 200.000) o contro il patrimonio (es. bancarotta fraudolenta, truffa aggravata, truffa semplice)?',
+    nota: 'Requisito soddisfatto se la risposta è SI.' },
+  { key:'cond3', okVal:'no',
+    testo: 'Il richiedente ha "colpa grave", ovvero ha causato volutamente il proprio sovraindebitamento oppure ha distratto denaro proveniente da vendite immobiliari o mobiliari?',
+    nota: 'Requisito soddisfatto se la risposta è NO.' },
+  { key:'cond4', okVal:'no',
+    testo: 'Il richiedente è "fallibile", ovvero possiede un attivo patrimoniale superiore a € 300.000, ricavi lordi superiori a € 200.000, oppure debiti superiori a € 500.000?',
+    nota: 'Requisito soddisfatto se la risposta è NO.' }
+];
+
+function requisitiCompilati() {
+  return REQUISITI_DOMANDE.every(function(q) { return D.requisiti[q.key] === 'si' || D.requisiti[q.key] === 'no'; });
+}
+
+function requisitiSoddisfatti() {
+  return REQUISITI_DOMANDE.every(function(q) { return D.requisiti[q.key] === q.okVal; });
+}
+
+function showRequisiti() {
+  var c = document.getElementById('main-card');
+  var html = '<p class="stitle">Requisiti preliminari di accesso alle procedure di sovraindebitamento</p>' +
+    '<div class="alert alert-green">Queste condizioni sono prioritarie e vincolanti: se anche una sola non risulta soddisfatta, il richiedente NON può accedere alle procedure di sovraindebitamento ed è inutile proseguire oltre nella raccolta dati. Rispondere SI o NO a ciascuna domanda in base a quanto dichiarato dal cliente.</div>';
+
+  REQUISITI_DOMANDE.forEach(function(q, i) {
+    var val = D.requisiti[q.key];
+    html += '<div class="field" style="margin-bottom:16px">' +
+      '<label>' + (i+1) + ') ' + q.testo + '</label>' +
+      '<div class="radios">' +
+        '<label><input type="radio" name="req-' + q.key + '" value="si"' + (val==='si'?' checked':'') + '> SI</label>' +
+        '<label><input type="radio" name="req-' + q.key + '" value="no"' + (val==='no'?' checked':'') + '> NO</label>' +
+      '</div>' +
+      '<small style="color:#888">' + q.nota + '</small>' +
+      '</div>';
+  });
+
+  html += '<div id="requisiti-esito"></div>';
+  c.innerHTML = html;
+
+  REQUISITI_DOMANDE.forEach(function(q) {
+    document.querySelectorAll('input[name="req-' + q.key + '"]').forEach(function(r) {
+      r.addEventListener('change', function() {
+        D.requisiti[q.key] = this.value;
+        renderRequisitiEsito();
+      });
+    });
+  });
+
+  renderRequisitiEsito();
+}
+
+function renderRequisitiEsito() {
+  var box = document.getElementById('requisiti-esito');
+  if (!box) return;
+  if (!requisitiCompilati()) { box.innerHTML = ''; return; }
+  if (requisitiSoddisfatti()) {
+    box.innerHTML = '<div class="alert alert-green"><strong>Esito: requisiti soddisfatti.</strong> Il richiedente può proseguire con la raccolta dati per l\'analisi di sovraindebitamento.</div>';
+  } else {
+    box.innerHTML = '<div class="alert alert-red"><strong>Esito: requisiti NON soddisfatti.</strong> In base alle risposte fornite, il richiedente non risulta in possesso dei requisiti per accedere alle procedure di sovraindebitamento. Si sconsiglia di proseguire oltre; contattare comunque lo studio per una valutazione specifica se si desidera continuare.' +
+      '<div style="margin-top:10px"><label><input type="checkbox" id="req-override"' + (D.requisiti.override?' checked':'') + '> Confermo di voler comunque proseguire con la compilazione nonostante l\'esito negativo</label></div>' +
+      '</div>';
+    var cb = document.getElementById('req-override');
+    if (cb) cb.addEventListener('change', function() { D.requisiti.override = this.checked; });
+  }
+}
 
 function showAnagrafica() {
   var c = document.getElementById('main-card');
@@ -562,6 +633,18 @@ var MOTIVI_MAP = {perdita_lavoro:'Perdita del lavoro / disoccupazione',malattia:
 // testuale sia per il PDF, cosi' i due formati restano sempre allineati.
 function buildSections(an) {
   var sections = [];
+
+  var reqLines = REQUISITI_DOMANDE.map(function(q, i) {
+    var v = D.requisiti[q.key];
+    var risposta = v === 'si' ? 'SI' : (v === 'no' ? 'NO' : 'Non risposto');
+    return (i+1) + ') ' + q.testo + ' -> ' + risposta;
+  });
+  reqLines.push('');
+  reqLines.push(requisitiCompilati()
+    ? (requisitiSoddisfatti() ? 'ESITO: requisiti soddisfatti.' : 'ESITO: requisiti NON soddisfatti' + (D.requisiti.override ? ' (proseguito comunque su conferma del consulente/cliente).' : '.'))
+    : 'ESITO: requisiti non completamente verificati.');
+  sections.push(['0. REQUISITI PRELIMINARI DI ACCESSO ALLE PROCEDURE DI SOVRAINDEBITAMENTO', reqLines]);
+
   sections.push(['1. DATI ANAGRAFICI', [
     'Cognome e nome: ' + (D.cognome||'') + ' ' + (D.nome||''),
     'Luogo e data di nascita: ' + (D.luogoNascita||'-') + ', ' + (D.dataNascita ? new Date(D.dataNascita).toLocaleDateString('it-IT') : '-'),
@@ -1036,6 +1119,16 @@ async function downloadBozza() {
 }
 
 document.getElementById('btn-next').addEventListener('click', function() {
+  if (STEPS[step] === 'Requisiti') {
+    if (!requisitiCompilati()) {
+      alert('Rispondere SI o NO a tutte le domande sui requisiti prima di proseguire.');
+      return;
+    }
+    if (!requisitiSoddisfatti() && !D.requisiti.override) {
+      alert('Il richiedente non risulta in possesso dei requisiti per accedere alle procedure di sovraindebitamento. Spuntare la casella di conferma per proseguire comunque, oppure fermarsi qui.');
+      return;
+    }
+  }
   if (step < STEPS.length-1) { step++; render(); }
 });
 document.getElementById('btn-prev').addEventListener('click', function() {
