@@ -758,7 +758,7 @@ function sanitizeForPdf(text) {
 async function generaPDFCompleto(an) {
   if (!window.jspdf) throw new Error('Libreria PDF non disponibile');
   var jsPDF = window.jspdf.jsPDF;
-  var doc = new jsPDF({ unit: 'pt', format: 'a4' });
+  var doc = new jsPDF({ unit: 'pt', format: 'a4', compress: true });
   var pageW = doc.internal.pageSize.getWidth();
   var margin = 48;
   var maxW = pageW - margin * 2;
@@ -814,7 +814,7 @@ async function generaPDFCompleto(an) {
   ensureSpace(110);
   doc.setFont('helvetica', 'bold'); doc.text('Firma:', margin, y); y += 6;
   if (D.firma.imgData) {
-    try { doc.addImage(D.firma.imgData, 'PNG', margin, y, 200, 70); } catch(e) {}
+    try { doc.addImage(D.firma.imgData, 'JPEG', margin, y, 200, 70); } catch(e) {}
   } else {
     doc.setDrawColor(200,200,200); doc.rect(margin, y, 200, 70);
   }
@@ -857,7 +857,7 @@ function setupSignaturePad() {
   function end() {
     if (!sigDrawing) return;
     sigDrawing = false;
-    D.firma.imgData = sigHasStroke ? canvas.toDataURL('image/png') : null;
+    D.firma.imgData = sigHasStroke ? riduciFirma(canvas) : null;
     updateFirmaButtonState();
   }
   canvas.addEventListener('mousedown', start);
@@ -889,6 +889,15 @@ function updateFirmaButtonState() {
 // Indirizzo del collegamento automatico che riceve il questionario compilato
 // e lo inoltra via email allo Studio per l'analisi e il preventivo.
 var WEBHOOK_INVIO_STUDIO = 'https://webhooks.tasklet.ai/v1/public/webhook/a_8v42s91g7p0avwmajcca?token=a191e2493529e50bad760b8414ecf02e';
+
+
+function riduciFirma(cv) {
+  var w = 400, h = Math.max(1, Math.round(cv.height * w / cv.width));
+  var t = document.createElement('canvas'); t.width = w; t.height = h;
+  var x = t.getContext('2d'); x.fillStyle = '#fff'; x.fillRect(0,0,w,h);
+  x.drawImage(cv, 0, 0, w, h);
+  return t.toDataURL('image/jpeg', 0.7);
+}
 
 function blobToBase64(blob) {
   return new Promise(function(resolve, reject) {
@@ -939,6 +948,15 @@ async function inviaAlloStudio() {
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify(payload)
     });
+    if (resp.status === 413) {
+      payload.pdfBase64 = '';
+      payload.pdfOmesso = true;
+      resp = await fetch(WEBHOOK_INVIO_STUDIO, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify(payload)
+      });
+    }
     if (resp.ok) {
       statusEl.textContent = '✓ Questionario inviato con successo allo Studio per l\'analisi e il preventivo.';
       statusEl.style.color = '#1a6644';
@@ -959,7 +977,7 @@ function showFirma() {
   var nomeCompleto = (D.nome||'') + ' ' + (D.cognome||'');
 
   c.innerHTML = '<p class="stitle">Firma e download del documento completo</p>' +
-    '<div class="alert alert-warn">Rileggi le informazioni inserite. Firmando confermi che quanto dichiarato è veritiero. Il documento scaricato conterrà l\'intero questionario, la bozza dell\'istanza e la tua firma.</div>' +
+    '<div class="alert alert-warn">Rileggi le informazioni inserite. Firmando confermi che quanto dichiarato è veritiero. Il documento scaricato conterrà l\'intero questionario, la tua firma.</div>' +
     row([fi('Luogo', 'f-fluogo', 'text', D.firma.luogo, 'es. Milano'), fi('Data', 'f-fdata', 'date', D.firma.data, '')]) +
     row([fi('Nome e cognome (per esteso)', 'f-fnome', 'text', nomeCompleto, '')]) +
     '<p class="stitle" style="margin-top:18px">Firma qui sotto</p>' +
