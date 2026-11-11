@@ -879,8 +879,10 @@ function updateFirmaButtonState() {
   var ready = !!D.firma.imgData && D.firma.accetta && D.nome && D.cognome;
   btn.disabled = !ready;
   var btnInvia = document.getElementById('btn-invia-studio');
-  if (btnInvia) btnInvia.disabled = !ready;
+  if (btnInvia) btnInvia.disabled = !ready || INVIO_IN_CORSO || INVIO_RIUSCITO;
 }
+var INVIO_IN_CORSO = false;
+var INVIO_RIUSCITO = false;
 
 // Indirizzo del collegamento automatico che riceve il questionario compilato
 // e lo inoltra via email allo Studio per l'analisi e il preventivo.
@@ -909,6 +911,8 @@ function blobToBase64(blob) {
 }
 
 async function inviaAlloStudio() {
+  if (INVIO_IN_CORSO) return;
+  if (INVIO_RIUSCITO && !confirm('Questo questionario è già stato inviato allo Studio. Vuoi inviarlo di nuovo?')) return;
   var statusEl = document.getElementById('invio-status');
   if (!D.firma.imgData || !D.firma.accetta) {
     statusEl.textContent = '⚠ Firma e conferma la dichiarazione prima di inviare.';
@@ -918,6 +922,7 @@ async function inviaAlloStudio() {
   statusEl.textContent = 'Invio in corso allo Studio…';
   statusEl.style.color = '#555';
   var btnInvia = document.getElementById('btn-invia-studio');
+  INVIO_IN_CORSO = true;
   if (btnInvia) btnInvia.disabled = true;
   try {
     var an2 = analizza();
@@ -954,7 +959,9 @@ async function inviaAlloStudio() {
       });
     }
     if (resp.ok) {
-      statusEl.textContent = '✓ Questionario inviato con successo allo Studio per l\'analisi e il preventivo.';
+      INVIO_RIUSCITO = true;
+      if (btnInvia) btnInvia.textContent = '✓ Questionario inviato allo Studio';
+      statusEl.textContent = '✓ Questionario inviato con successo allo Studio per l\'analisi e il preventivo. Non occorre inviarlo di nuovo.';
       statusEl.style.color = '#1a6644';
     } else {
       throw new Error('HTTP ' + resp.status);
@@ -963,7 +970,9 @@ async function inviaAlloStudio() {
     statusEl.textContent = '⚠ Invio non riuscito (' + (err && err.message ? err.message : 'errore di rete') + '). Puoi comunque scaricare il PDF e inviarlo manualmente.';
     statusEl.style.color = '#c03030';
   } finally {
-    if (btnInvia) btnInvia.disabled = false;
+    INVIO_IN_CORSO = false;
+    updateFirmaButtonState();
+    if (INVIO_RIUSCITO && btnInvia) { btnInvia.disabled = false; btnInvia.classList.remove('btn-primary'); btnInvia.classList.add('btn-secondary'); btnInvia.textContent = '↻ Invia di nuovo (chiede conferma)'; }
   }
 }
 
